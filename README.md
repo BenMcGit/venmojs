@@ -226,6 +226,7 @@ let result = await Venmo.requestMoney(target_user, -0.01, "This is a test")
 console.log(result);
 ```
 
+#### Get User and Transaction Data Example
 ```js
 import Venmo from "venmo4js";
 
