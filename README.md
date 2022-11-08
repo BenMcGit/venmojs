@@ -32,7 +32,7 @@ Allows us to send an SMS text message to retrieve a one time token. To call this
 
 Most venmo accounts require two factor authentication. This method allows us to use a token gotten from SMS to login and get an access token.
 
-```json
+```javascript
 {
   expires_in: 0,
   balance: 0,
@@ -79,7 +79,7 @@ Returns the user id (like this: 2051112592998400240)
 
 Retrieves basic user information for a specified user. On success the data returned looks like this:
 
-```json
+```javascript
 {
   id: '2051112592998400240',
   username: 'Ben-McAdams-1',
@@ -97,7 +97,7 @@ Retrieves the list of friends for a given user
 
 #### `Venmo.fetchTransaction(transactionID)`
 
-```json
+```javascript
 {
   data: {
     comments: { data: [], count: 0 },
@@ -150,7 +150,7 @@ Returns 10 different transactions
 
 Requests money from a targeted user.
 
-```json
+```javascript
 {
   data: {
     payment_token: null,
@@ -182,9 +182,9 @@ Errors will be thrown if there are invalid credentials (or not passed), or if yo
 
 ### Example
 
-##### Authentication Example: 
+#### Authentication Example: 
 
-```js
+```javascript
 import Venmo from "venmo4js";
 import readline from "readline";
 
@@ -214,9 +214,9 @@ if (res.error && res.venmo_otp_secret) {
 console.log(res);
 ```
 
-#### Request Payment Example
+#### Request Payment Example:
 
-```js
+```javascript
 import Venmo from "venmo4js";
 let access_token = "<ENTER_ACCESS_TOKEN>"
 let target_user = "<ENTER_USER_ID>"
@@ -226,8 +226,9 @@ let result = await Venmo.requestMoney(target_user, -0.01, "This is a test")
 console.log(result);
 ```
 
-#### Get User and Transaction Data Example
-```js
+#### Get User and Transaction Data Example:
+
+```javascript
 import Venmo from "venmo4js";
 
 let access_token = "<ENTER_ACCESS_TOKEN>"
