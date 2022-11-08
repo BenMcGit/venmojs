@@ -2,6 +2,12 @@
 
 A NodeJS wrapper for the Venmo API (Forked from https://github.com/pineapplelol/venmojs)
 
+## Installation
+
+```
+npm i venmo4js
+```
+
 ## Usage
 
 ### Authentication
@@ -60,7 +66,7 @@ Most venmo accounts require two factor authentication. This method allows us to 
     is_blocked: false
   },
   token_type: 'bearer',
-  access_token: <ACCESS_TOKEN>,
+  access_token: "<ACCESS_TOKEN>",
   refresh_token: ''
 }
 ```
@@ -243,8 +249,8 @@ console.log(res)
 
 res = await Venmo.fetchTransactions(res.id)
 console.log(res);
-let transactionID = res.data[0].id
 
+let transactionID = res.data[0].id
 res = await Venmo.fetchTransaction(transactionID);
 console.log(res);
 ```
