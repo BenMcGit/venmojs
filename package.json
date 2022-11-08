@@ -1,15 +1,18 @@
 {
-  "name": "venmojs",
-  "version": "0.0.3",
+  "name": "venmo4js",
+  "version": "0.0.1",
   "description": "Venmo API wrapper for NodeJS",
   "type": "module",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js"
+    "start": "node index.js",
+    "test": "mocha"
   },
   "author": "",
   "license": "MIT",
   "dependencies": {
+    "chai": "^4.3.7",
+    "mocha": "^10.1.0",
     "node-fetch": "^3.2.4",
     "readline": "^1.3.0"
   }
