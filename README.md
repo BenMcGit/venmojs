@@ -1,6 +1,6 @@
-# venmo-api
+# venmo4js
 
-A NodeJS wrapper for the Venmo API.
+A NodeJS wrapper for the Venmo API (Forked from https://github.com/pineapplelol/venmojs)
 
 ## Usage
 
@@ -10,7 +10,7 @@ A NodeJS wrapper for the Venmo API.
 
 This method allows us to retrive an access token that can be used throughout the authenticated api calls. Generally this will require two factor authentication. If this is the case, expect an error like this:
 
-```json
+```javascript
 {
   error: {
     message: "Additional authentication is required",
