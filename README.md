@@ -15,7 +15,7 @@ npm i venmo4js
 Retrieve an instance of the Venmo class
 
 ```javascript
-const Venmo = require('venmo4js');
+const { Venmo } = require('venmo4js');
 
 let venmo = Venmo.getInstance();
 
