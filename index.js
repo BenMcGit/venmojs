@@ -1,3 +1,9 @@
-import Venmo from "./lib/venmo.js";
+'use strict';
 
-export default Venmo;
+const Venmo = require('./lib/venmo.js');
+const utils = require('./lib/utils.js');
+
+module.exports = {
+    Venmo,
+    utils
+};
