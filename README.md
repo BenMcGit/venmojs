@@ -1,6 +1,6 @@
 # venmo4js
 
-A NodeJS wrapper for the Venmo API (Forked from https://github.com/pineapplelol/venmojs)
+A NodeJS wrapper for the Venmo API
 
 ## Installation
 
@@ -24,7 +24,7 @@ let venmo = Venmo.getInstance();
 
 ### Authentication
 
-#### `Venmo.loginUsernamePassword(username, password)`
+#### `Venmo.loginUsernamePassword(username, password, device_id, client_id)`
 
 This method allows us to retrive an access token that can be used throughout the authenticated api calls. Generally this will require two factor authentication. If this is the case, expect an error like this:
 
@@ -42,11 +42,12 @@ This method allows us to retrive an access token that can be used throughout the
   device_id: "<DEVICE_ID>"
 }
 ```
+
 #### `Venmo.sendTextForOneTimePassword(device_id, otp_secret)`
 
-Allows us to send an SMS text message to retrieve a one time token. To call this function we need to get the `venmo_otp_secret` from `Venmo.loginUsernamePassword` and pass it into `Venmo.loginOneTimePassword` along with the token in the text message (user_otp).
+Allows us to send an SMS text message to retrieve a one time token. To call this function we need to get the `venmo_otp_secret` from `Venmo.loginUsernamePassword` and pass it into `Venmo.loginOneTimePassword` along with the token in the text message (otp).
 
-#### `Venmo.loginOneTimePassword(device_id, user_otp, otp_secret)`
+#### `Venmo.loginOneTimePassword(device_id, otp, otp_secret, client_id)`
 
 Most venmo accounts require two factor authentication. This method allows us to use a token gotten from SMS to login and get an access token.
 
@@ -83,37 +84,19 @@ Most venmo accounts require two factor authentication. This method allows us to 
 }
 ```
 
-#### `Venmo.logout(accessToken)`
+#### `Venmo.logout(access_token)`
 
 Revokes the access token from the user so it can no longer be used for authenticated API calls.
 
 ### User Information
 
-#### `Venmo.getUserIDfromUsername(username)`
-
-Returns the user id (like this: 2051112592998400240)
-
-#### `Venmo.getUserInformation(username)`
-
-Retrieves basic user information for a specified user. On success the data returned looks like this:
-
-```javascript
-{
-  id: '',
-  username: '',
-  name: '',
-  dateJoined: '',
-  profilePictureURL: ''
-}
-```
-
-#### `Venmo.getFriendsList(userID)`
+#### `Venmo.fetchFriends(user_id, access_token)`
 
 Retrieves the list of friends for a given user
 
 ### Transactions
 
-#### `Venmo.fetchTransaction(transactionID)`
+#### `Venmo.fetchTransaction(transactionID, access_token)`
 
 ```javascript
 {
@@ -158,13 +141,9 @@ Retrieves the list of friends for a given user
 }
 ```
 
-#### `Venmo.fetchTransactions(transactionID)`
-
-Returns 10 different transactions
-
 ### Payments
 
-#### `Venmo.requestMoney(target_user, amount, note, isPrivate)`
+#### `Venmo.requestPayment(amount, target_user_name, note, access_token, is_private)`
 
 Requests money from a targeted user.
 
@@ -194,82 +173,129 @@ Requests money from a targeted user.
   }
 }
 ```
+
 ### Errors
 
 Errors will be thrown if there are invalid credentials (or not passed), or if you hit Venmo's rate limit.
 
 ### Example
 
-#### Authentication Example: 
+#### Authentication Example:
 
 ```javascript
-const {Venmo, utils} = require('venmo4js');
+const { Venmo } = require("venmo4js");
 
-let username = "<ENTER_USERNAME>"
-let password = "<ENTER_PASSWORD>"
+function fetchOneTimePasswordTokenSMS() {
+  let query = "Please enter your Venmo authentication token (SMS):";
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
+  });
+  return new Promise((resolve) =>
+    rl.question(query, (ans) => {
+      rl.close();
+      resolve(ans.trim());
+    })
+  );
+}
+
 let venmo = Venmo.getInstance();
 
-(async () => {
-    let res = await venmo.loginUsernamePassword(username, password);
-    if (res.error && res.venmo_otp_secret) {
-        await venmo.sendTextForOneTimePassword(res.device_id, res.venmo_otp_secret);
-        let otp_secret = await utils.fetchOneTimePasswordTokenSMS();
-        res = await venmo.loginOneTimePassword(res.device_id, otp_secret, res.venmo_otp_secret);
-        console.log(venmo.getAccessToken());
-    } else if (res.error) {
-        console.log(res.error)
-    }
-    console.log(res);
-})();
+const loginExample = async () => {
+  let client_id = "1";
+  let device_id = "99999999999999999999999";
+  let user_name = "<ENTER_USER_NAME>";
+  let password = "<ENTER_PASSWORD>";
+
+  let res = await venmo.loginUsernamePassword(
+    user_name,
+    password,
+    device_id,
+    client_id
+  );
+
+  // if two factor authentication is enabled for user
+  if (res.data.error && res.headers.venmo_otp_secret) {
+    const text = await venmo.sendTextForOneTimePassword(
+      device_id,
+      res.headers.venmo_otp_secret
+    );
+    console.log(text);
+    let user_otp = await fetchOneTimePasswordTokenSMS();
+    res = await venmo.loginOneTimePassword(
+      res.headers.venmo_otp_secret,
+      user_otp,
+      device_id,
+      client_id
+    );
+  }
+  console.log(res);
+};
+loginExample();
 ```
 
 #### Request Payment Example:
 
 ```javascript
-const { Venmo } = require('venmo4js');
+const { Venmo } = require("venmo4js");
 
-let target_user = "<ENTER_USER_NAME>"
-let access_token = "<ENTER_ACCESS_TOKEN>"
 let venmo = Venmo.getInstance();
 
-(async () => {
-    // Assume you already have an access token generated
-    venmo.setAccessToken(access_token);
+const requestPaymentExample = async () => {
+  const friend_user_name = "<ENTER_USER_NAME>";
+  const access_token = "<ENTER_ACCESS_TOKEN>";
+  const note = "This is a tiny description";
 
-    // Request a penny from a friend
-    let res = await venmo.requestMoney(target_user, 0.01, "This is a test <3");
-    console.log(res);
-})();
+  // Determines who can view that this payment request has occurred
+  const is_private = true;
+
+  // IMPORTANT: Curretly there are safe gaurds to only allow requesting a payment between 0 and 100 dollars
+  // Requesting payments requires a negative number to be entered
+  // Sending payments requires a positive number.. this implementation does not support sending payments but its
+  // simple to modify
+  const amount = -1;
+
+  const user_details = await venmo.fetchUserDetails(user_name, access_token);
+  console.log(user_details);
+
+  const requestPayment = await venmo.requestPayment(
+    amount,
+    friend_user_name,
+    note,
+    access_token,
+    is_private
+  );
+  console.log(requestPayment);
+};
+requestPaymentExample();
 ```
 
-#### Get User and Transaction Data Example:
+#### Fetch Friends Example:
 
 ```javascript
-const { Venmo } = require('venmo4js');
+const { Venmo } = require("venmo4js");
 
-let target_user = "<ENTER_USER_NAME>"
-let access_token = "<ENTER_ACCESS_TOKEN>"
-let venmo = Venmo.getInstance();
+const fetchFriendsExample = async () => {
+  const user_id = "<ENTER_USER_ID>";
+  const access_token = "<ENTER_ACCESS_TOKEN>";
 
-(async () => {
-    // Assume you already have an access token generated
-    venmo.setAccessToken(access_token);
+  const friends = await venmo.fetchFriends(user_id, access_token);
+  console.log(friends);
+};
+fetchFriendsExample();
+```
 
-    // Fetch a user ID from a freinds username
-    let res = await venmo.getUserIDfromUsername(target_user);
-    console.log(res);
+#### Fetch User Details Example:
 
-    // Fetch details about a friend
-    res = await venmo.getUserInformation(target_user);
-    console.log(res);
+```javascript
+const { Venmo } = require("venmo4js");
 
-    // Fetch a friends transactions
-    res = await venmo.fetchTransactions(res.id)
-    console.log(res);
+const fetchUserDetailsExample = async () => {
+  const user_name = "<ENTER_USER_NAME>";
+  const access_token = "<ENTER_ACCESS_TOKEN>";
 
-    // Fetch a single transaction
-    let transactionID = res.data[0].id
-    res = await venmo.fetchTransaction(transactionID);
-    console.log(res);
-})();
+  const user_details = await venmo.fetchUserDetails(user_name, access_token);
+  console.log(user_details);
+};
+fetchUserDetailsExample();
 ```
