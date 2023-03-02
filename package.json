@@ -1,6 +1,6 @@
 {
   "name": "venmo4js",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "Venmo API wrapper for NodeJS",
   "main": "index.js",
   "scripts": {
